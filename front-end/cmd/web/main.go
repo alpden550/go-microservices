@@ -5,11 +5,27 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 )
 
+type templateData struct {
+	BrokerURL string `env:"BROKER_URL,required"`
+}
+
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+
+	var td templateData
+	if err := env.Parse(&td); err != nil {
+		log.Fatal(err.Error())
+	}
+
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		render(writer, "test.page.gohtml")
+		render(writer, "test.page.gohtml", &td)
 	})
 
 	log.Println("Starting front end service on port 80")
@@ -19,8 +35,7 @@ func main() {
 	}
 }
 
-func render(writer http.ResponseWriter, t string) {
-
+func render(writer http.ResponseWriter, t string, td *templateData) {
 	partials := []string{
 		"./cmd/web/templates/base.layout.gohtml",
 		"./cmd/web/templates/header.partial.gohtml",
@@ -40,7 +55,7 @@ func render(writer http.ResponseWriter, t string) {
 		return
 	}
 
-	if err = tmpl.Execute(writer, nil); err != nil {
+	if err = tmpl.Execute(writer, td); err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 	}
 }
