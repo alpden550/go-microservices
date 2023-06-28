@@ -1,3 +1,5 @@
+github.com/alpden550/json-helpers v0.1.0 h1:0390ZB81iIIimN9SqLUAWxDf/flg2ntTjFaqrWA0vUI=
+github.com/alpden550/json-helpers v0.1.0/go.mod h1:ihB7fMriX3NJhLFaxg0aXW1lMj4KXazTn0D0IxXQmc4=
 github.com/go-chi/chi/v5 v5.0.8 h1:lD+NLqFcAi1ovnVZpsnObHGW4xb4J8lNmoYVfECH1Y0=
 github.com/go-chi/chi/v5 v5.0.8/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
 github.com/go-chi/cors v1.2.1 h1:xEC8UT3Rlp2QuWNEr4Fs/c2EAGVKBwy/1vHx3bppil4=
