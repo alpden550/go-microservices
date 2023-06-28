@@ -1,8 +1,15 @@
 package main
 
 import (
+	helpers "github.com/alpden550/json-helpers"
 	"net/http"
 )
+
+type jsonResponse struct {
+	Error   bool        `json:"error"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
 
 func (app *Config) Broker(writer http.ResponseWriter, request *http.Request) {
 	payload := jsonResponse{
@@ -10,5 +17,5 @@ func (app *Config) Broker(writer http.ResponseWriter, request *http.Request) {
 		Message: "message",
 	}
 
-	_ = app.writeJSON(writer, http.StatusOK, payload)
+	_ = helpers.WriteJSON(writer, http.StatusOK, payload)
 }
