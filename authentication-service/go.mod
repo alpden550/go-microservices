@@ -3,6 +3,7 @@ module authentication
 go 1.20
 
 require (
+	github.com/alpden550/json-helpers v0.2.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/jackc/pgconn v1.14.0
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	github.com/alpden550/json-helpers v0.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

@@ -1,5 +1,5 @@
-github.com/alpden550/json-helpers v0.1.0 h1:0390ZB81iIIimN9SqLUAWxDf/flg2ntTjFaqrWA0vUI=
-github.com/alpden550/json-helpers v0.1.0/go.mod h1:ihB7fMriX3NJhLFaxg0aXW1lMj4KXazTn0D0IxXQmc4=
+github.com/alpden550/json-helpers v0.2.1 h1:GEJrwlYfZGAE0uxJhZ0QucAzSBXh8mlZskXHqIYE67A=
+github.com/alpden550/json-helpers v0.2.1/go.mod h1:ihB7fMriX3NJhLFaxg0aXW1lMj4KXazTn0D0IxXQmc4=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
