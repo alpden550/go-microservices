@@ -20,6 +20,7 @@ services:
     build:
       context: ./../broker-service
       dockerfile: Dockerfile
+    env_file: ./../broker-service/.env
     restart: always
     ports:
       - "8080:80"
