@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	helpers "github.com/alpden550/json_helpers"
@@ -34,10 +35,10 @@ func (app *Config) Authenticate(writer http.ResponseWriter, request *http.Reques
 
 	jsonResponse := helpers.JSONResponse{
 		Error:   false,
-		Message: "fmt.Sprintf(\"Logged in user %s\", user.Email)",
+		Message: fmt.Sprintf("Logged in user %s", user.Email),
 		Data:    user,
 	}
-	err = tool.WriteJSON(writer, http.StatusOK, jsonResponse)
+	err = tool.WriteJSON(writer, http.StatusAccepted, jsonResponse)
 	if err != nil {
 		return
 	}
