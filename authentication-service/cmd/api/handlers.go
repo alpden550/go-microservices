@@ -2,19 +2,13 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	helpers "github.com/alpden550/json-helpers"
 	"net/http"
+
+	helpers "github.com/alpden550/json_helpers"
 )
 
 func (app *Config) Authenticate(writer http.ResponseWriter, request *http.Request) {
 	var tool helpers.Tool
-
-	var jsonResponse struct {
-		Error   bool        `json:"error"`
-		Message string      `json:"message"`
-		Data    interface{} `json:"data,omitempty"`
-	}
 
 	var requestPayload struct {
 		Email    string `json:"email"`
@@ -38,9 +32,11 @@ func (app *Config) Authenticate(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	jsonResponse.Error = false
-	jsonResponse.Message = fmt.Sprintf("Logged in user %s", user.Email)
-	jsonResponse.Data = user
+	jsonResponse := helpers.JSONResponse{
+		Error:   false,
+		Message: "fmt.Sprintf(\"Logged in user %s\", user.Email)",
+		Data:    user,
+	}
 	err = tool.WriteJSON(writer, http.StatusOK, jsonResponse)
 	if err != nil {
 		return
