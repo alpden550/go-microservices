@@ -17,25 +17,19 @@ func (app *Config) Authenticate(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if err := tool.ReadJSONBody(writer, request, &requestPayload); err != nil {
-		err = tool.WriteErrorJSON(writer, err)
+		_ = tool.WriteErrorJSON(writer, err)
 		return
 	}
 
 	user, err := app.Models.User.GetByEmail(requestPayload.Email)
 	if err != nil {
 		_ = tool.WriteErrorJSON(writer, errors.New("not found user"))
-		if err != nil {
-			return
-		}
 		return
 	}
 
 	valid, err := user.PasswordMatches(requestPayload.Password)
 	if err != nil || !valid {
-		err = tool.WriteErrorJSON(writer, errors.New("invalid password credentials"))
-		if err != nil {
-			return
-		}
+		_ = tool.WriteErrorJSON(writer, errors.New("invalid password credentials"))
 		return
 	}
 
