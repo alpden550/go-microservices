@@ -10,11 +10,29 @@
                 <a id="brokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Broker</a>
                 <a id="authBrokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Auth</a>
 
+            </div>
+        </div>
+
+        <form id="auth_form" class="mt-4 needs-validation d-none" novalidate="">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" aria-describedby="emailHelp" required="">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required="">
+            </div>
+            <a href="javascript:void(0)" class="btn btn-primary" onclick="val()">Check auth</a>
+        </form>
+
+        <div class="row">
+            <div class="col">
                 <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
                     <span class="text-muted">Output shows here...</span>
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col">
                 <h4 class="mt-5">Sent</h4>
@@ -36,11 +54,14 @@
     <script>
         let brokerBtn = document.getElementById("brokerBtn");
         let authBtn = document.getElementById("authBrokerBtn");
+        let authForm = document.getElementById("auth_form");
         let output = document.getElementById("output");
         let sent = document.getElementById("payload");
         let received = document.getElementById("received");
 
         brokerBtn.addEventListener("click", function () {
+            authForm.classList.add("d-none");
+
             const body = {
                 method: "POST",
             }
@@ -59,13 +80,28 @@
                     output.innerHTML += "<br><br>Error: " + error;
                 })
         })
-        
+
         authBtn.addEventListener("click", function () {
+            authForm.classList.remove("d-none");
+        })
+
+        function val() {
+            if (authForm.checkValidity() === false) {
+                this.event.preventDefault();
+                this.event.stopPropagation();
+                authForm.classList.add("was-validated");
+                return;
+            }
+            authForm.classList.add("was-validated");
+
+            let email = document.getElementById("email");
+            let password = document.getElementById("password");
+
             const payload = {
                 action: "auth",
                 auth: {
-                    "email": "admin@example.com",
-                    "password": "verysecret",
+                    "email": email.value,
+                    "password": password.value,
                 },
             }
 
@@ -93,7 +129,7 @@
                     output.innerHTML += "<br><br>Error: " + error;
                 })
 
-        })
+        }
 
     </script>
 {{end}}
