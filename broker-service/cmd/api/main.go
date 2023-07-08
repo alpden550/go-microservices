@@ -11,7 +11,8 @@ import (
 const port = "80"
 
 type Config struct {
-	AuthURL string `env:"AUTH_URL,required"`
+	AuthURL   string `env:"AUTH_URL,required"`
+	LoggerURL string `env:"LOGGER_URL,required"`
 }
 
 func main() {
