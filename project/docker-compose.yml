@@ -16,6 +16,14 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 
+  mongo:
+    image: 'mongo:latest'
+    ports:
+      - "27017:27017"
+    env_file: ./../logger-service/.env
+    volumes:
+      - ./db-data/mongo/:/data/db
+
   broker-service:
     build:
       context: ./../broker-service
@@ -40,3 +48,13 @@ services:
       replicas: 1
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=postgres sslmode=disable timezone=UTC connect_timeout=5"
+
+  logger-service:
+    build:
+      context: ./../logger-service
+      dockerfile: Dockerfile
+    env_file: ./../logger-service/.env
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
