@@ -13,6 +13,7 @@ const port = "80"
 type Config struct {
 	AuthURL   string `env:"AUTH_URL,required"`
 	LoggerURL string `env:"LOGGER_URL,required"`
+	MailerURL string `env:"MAILER_URL,required"`
 }
 
 func main() {
