@@ -9,6 +9,7 @@
                 <a id="brokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Broker</a>
                 <a id="authBrokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Auth</a>
                 <a id="logBrokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Logging</a>
+                <a id="mailBrokerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Test Mailing</a>
             </div>
         </div>
 
@@ -22,6 +23,27 @@
                 <input type="password" class="form-control" id="password" required="">
             </div>
             <a href="javascript:void(0)" class="btn btn-primary" onclick="val()">Check auth</a>
+        </form>
+
+        <form id="mail_form" class="mt-4 needs-validation d-none" novalidate="">
+            <div class="mb-3">
+                <label for="email_to" class="form-label">Email To</label>
+                <input type="email" class="form-control" id="email_to" aria-describedby="emailHelp" required="">
+            </div>
+            <div class="mb-3">
+                <label for="email_from" class="form-label">Email From</label>
+                <input type="email" class="form-control" id="email_from" aria-describedby="emailHelp" required="">
+            </div>
+            <div class="mb-3">
+                <label for="email_subject" class="form-label">Subject</label>
+                <input type="text" class="form-control" id="email_subject" aria-describedby="emailHelp" required="">
+            </div>
+            <div class="mb-3">
+                <label for="email_message" class="form-label">Message</label>
+                <textarea class="form-control" id="email_message" rows="3" required=""></textarea>
+            </div>
+
+            <a href="javascript:void(0)" class="btn btn-primary" onclick="valMail()">Send Mail</a>
         </form>
 
         <div class="row">
@@ -54,13 +76,16 @@
         let brokerBtn = document.getElementById("brokerBtn");
         let authBtn = document.getElementById("authBrokerBtn");
         let logBtn = document.getElementById("logBrokerBtn");
+        let mailBtn = document.getElementById("mailBrokerBtn");
         let authForm = document.getElementById("auth_form");
+        let mailForm = document.getElementById("mail_form");
         let output = document.getElementById("output");
         let sent = document.getElementById("payload");
         let received = document.getElementById("received");
 
         brokerBtn.addEventListener("click", function () {
             authForm.classList.add("d-none");
+            mailForm.classList.add("d-none");
 
             const body = {
                 method: "POST",
@@ -82,11 +107,13 @@
         })
 
         authBtn.addEventListener("click", function () {
+            mailForm.classList.add("d-none");
             authForm.classList.remove("d-none");
         })
 
         logBtn.addEventListener("click", function () {
             authForm.classList.add("d-none");
+            mailForm.classList.add("d-none");
 
             const payload = {
                 action: "log",
@@ -118,6 +145,11 @@
                 .catch((error) => {
                     output.innerHTML += "<br><br>Error: " + error;
                 })
+        })
+
+        mailBtn.addEventListener("click", function () {
+            authForm.classList.add("d-none");
+            mailForm.classList.remove("d-none");
         })
 
         function val() {
@@ -163,6 +195,57 @@
                 .catch((error) => {
                     output.innerHTML += "<br><br>Error: " + error;
                 })
+
+        }
+
+        function valMail() {
+            if (mailForm.checkValidity() === false) {
+                this.event.preventDefault();
+                this.event.stopPropagation();
+                mailForm.classList.add("was-validated");
+                return;
+            }
+            mailForm.classList.add("was-validated");
+
+            let from = document.getElementById("email_from");
+            let to = document.getElementById("email_to");
+            let subject = document.getElementById("email_subject");
+            let message = document.getElementById("email_message");
+
+            const payload = {
+                action: "mail",
+                mail: {
+                    from: from.value,
+                    to: to.value,
+                    subject: subject.value,
+                    message: message.value,
+                },
+            }
+
+            const headers = new Headers();
+            headers.append("Content-Type", "application/json");
+
+            const body = {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: headers,
+            }
+
+            fetch("{{ .BrokerURL }}/handle", body)
+                .then((response) => response.json())
+                .then((data) => {
+                    sent.innerHTML = JSON.stringify(payload, undefined, 4);
+                    received.innerHTML = JSON.stringify(data, undefined, 4);
+                    if (data.error) {
+                        output.innerHTML += `<br><strong>${data.message}</strong>`
+                    } else {
+                        output.innerHTML += `<br><strong>Response from Broker Service</strong>: ${data.message}`;
+                    }
+                })
+                .catch((error) => {
+                    output.innerHTML += "<br><br>Error: " + error;
+                })
+
 
         }
 
