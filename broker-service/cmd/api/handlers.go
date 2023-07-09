@@ -15,6 +15,7 @@ type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
+	Mail   MailPayload `json:"mail,omitempty"`
 }
 
 type AuthPayload struct {
@@ -25,6 +26,13 @@ type AuthPayload struct {
 type LogPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 func (app *Config) Broker(writer http.ResponseWriter, request *http.Request) {
@@ -53,6 +61,8 @@ func (app *Config) HandleSubmission(writer http.ResponseWriter, request *http.Re
 		app.authenticate(writer, requestPayload.Auth)
 	case "log":
 		app.logItem(writer, requestPayload.Log)
+	case "mail":
+		app.sendMail(writer, requestPayload.Mail)
 	default:
 		err := tool.WriteErrorJSON(writer, errors.New("unknown action"))
 		if err != nil {
@@ -87,8 +97,6 @@ func (app *Config) authenticate(writer http.ResponseWriter, a AuthPayload) {
 		return
 	}
 
-	log.Printf("%#v", jsonFromService)
-
 	if jsonFromService.Error {
 		_ = tool.WriteErrorJSON(writer, errors.New(jsonFromService.Message), http.StatusUnauthorized)
 		return
@@ -116,7 +124,6 @@ func (app *Config) logItem(writer http.ResponseWriter, entry LogPayload) {
 		_ = tool.WriteErrorJSON(writer, err)
 		return
 	}
-	log.Printf("%#v\n", entry)
 	request.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -139,6 +146,42 @@ func (app *Config) logItem(writer http.ResponseWriter, entry LogPayload) {
 	err = tool.WriteJSON(writer, http.StatusAccepted, payload)
 	if err != nil {
 		log.Printf("%e", fmt.Errorf("%e", err))
+		return
+	}
+}
+
+func (app *Config) sendMail(writer http.ResponseWriter, msg MailPayload) {
+	var tool helpers.Tool
+	jsonData, _ := json.MarshalIndent(msg, "", "\t")
+
+	mailerURL := fmt.Sprintf("%s/send", app.MailerURL)
+	request, err := http.NewRequest("POST", mailerURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		_ = tool.WriteErrorJSON(writer, errors.New("error calling mail service"))
+		return
+	}
+
+	payload := helpers.JSONResponse{
+		Error:   false,
+		Message: "Message sent to " + msg.To,
+	}
+
+	err = tool.WriteJSON(writer, http.StatusAccepted, payload)
+	if err != nil {
 		return
 	}
 }
