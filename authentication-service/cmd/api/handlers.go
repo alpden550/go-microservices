@@ -67,10 +67,12 @@ func (app *Config) logRequest(name, data string) error {
 	if err != nil {
 		return err
 	}
+	request.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	_, err = client.Do(request)
-	if err != nil {
+	response, err := client.Do(request)
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusAccepted || err != nil {
 		return err
 	}
 
