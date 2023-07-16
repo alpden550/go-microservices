@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 
+	"broker/event"
+
 	helpers "github.com/alpden550/json_helpers"
 )
 
@@ -60,7 +62,7 @@ func (app *Config) HandleSubmission(writer http.ResponseWriter, request *http.Re
 	case "auth":
 		app.authenticate(writer, requestPayload.Auth)
 	case "log":
-		app.logItem(writer, requestPayload.Log)
+		app.logEventRabbit(writer, requestPayload.Log)
 	case "mail":
 		app.sendMail(writer, requestPayload.Mail)
 	default:
@@ -184,4 +186,42 @@ func (app *Config) sendMail(writer http.ResponseWriter, msg MailPayload) {
 	if err != nil {
 		return
 	}
+}
+
+func (app *Config) logEventRabbit(writer http.ResponseWriter, l LogPayload) {
+	tool := helpers.Tool{}
+	err := app.pushToQueue(l.Name, l.Data)
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+
+	payload := helpers.JSONResponse{
+		Error:   false,
+		Message: "logged via rabbitMQ",
+	}
+	err = tool.WriteJSON(writer, http.StatusAccepted, payload)
+	if err != nil {
+		return
+	}
+
+}
+
+func (app *Config) pushToQueue(name, msg string) error {
+	emitter, err := event.NewEmitter(app.Rabbit)
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: msg,
+	}
+
+	jsonPayload, _ := json.MarshalIndent(&payload, "", "\t")
+	if err = emitter.Push(string(jsonPayload), "log.INFO"); err != nil {
+		return err
+	}
+
+	return nil
 }
