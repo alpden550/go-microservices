@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/rpc"
 
 	"broker/event"
 
@@ -37,6 +38,11 @@ type MailPayload struct {
 	Message string `json:"message"`
 }
 
+type RPCPayload struct {
+	Name string
+	Data string
+}
+
 func (app *Config) Broker(writer http.ResponseWriter, request *http.Request) {
 	var tool helpers.Tool
 
@@ -63,6 +69,8 @@ func (app *Config) HandleSubmission(writer http.ResponseWriter, request *http.Re
 		app.authenticate(writer, requestPayload.Auth)
 	case "log":
 		app.logEventRabbit(writer, requestPayload.Log)
+	case "log-rpc":
+		app.logEventViaRPC(writer, requestPayload.Log)
 	case "mail":
 		app.sendMail(writer, requestPayload.Mail)
 	default:
@@ -224,4 +232,32 @@ func (app *Config) pushToQueue(name, msg string) error {
 	}
 
 	return nil
+}
+
+func (app *Config) logEventViaRPC(writer http.ResponseWriter, l LogPayload) {
+	tool := helpers.Tool{}
+
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+
+	rpcPayload := RPCPayload{
+		Name: l.Name,
+		Data: l.Data,
+	}
+
+	var result string
+	err = client.Call("RPCServer.LogInfo", rpcPayload, &result)
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+
+	response := helpers.JSONResponse{
+		Error:   false,
+		Message: result,
+	}
+	_ = tool.WriteJSON(writer, http.StatusAccepted, response)
 }
