@@ -2,14 +2,20 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/rpc"
+	"time"
 
 	"broker/event"
+	"broker/logs"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	helpers "github.com/alpden550/json_helpers"
 )
@@ -58,10 +64,8 @@ func (app *Config) HandleSubmission(writer http.ResponseWriter, request *http.Re
 	var requestPayload RequestPayload
 
 	if err := tool.ReadJSONBody(writer, request, &requestPayload); err != nil {
-		err = tool.WriteErrorJSON(writer, err)
-		if err != nil {
-			return
-		}
+		_ = tool.WriteErrorJSON(writer, err)
+		return
 	}
 
 	switch requestPayload.Action {
@@ -74,10 +78,7 @@ func (app *Config) HandleSubmission(writer http.ResponseWriter, request *http.Re
 	case "mail":
 		app.sendMail(writer, requestPayload.Mail)
 	default:
-		err := tool.WriteErrorJSON(writer, errors.New("unknown action"))
-		if err != nil {
-			return
-		}
+		_ = tool.WriteErrorJSON(writer, errors.New("unknown action"))
 	}
 }
 
@@ -260,4 +261,49 @@ func (app *Config) logEventViaRPC(writer http.ResponseWriter, l LogPayload) {
 		Message: result,
 	}
 	_ = tool.WriteJSON(writer, http.StatusAccepted, response)
+}
+
+func (app *Config) logEventViaGRPC(writer http.ResponseWriter, request *http.Request) {
+	var tool helpers.Tool
+	var requestPayload RequestPayload
+
+	if err := tool.ReadJSONBody(writer, request, &requestPayload); err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+
+	conn, err := grpc.Dial(
+		"logger-service:50001",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+	defer conn.Close()
+
+	client := logs.NewLogServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err = client.WriteLog(ctx, &logs.LogRequest{
+		LogEntry: &logs.Log{
+			Name: requestPayload.Log.Name,
+			Data: requestPayload.Log.Data,
+		},
+	})
+	if err != nil {
+		_ = tool.WriteErrorJSON(writer, err)
+		return
+	}
+
+	response := helpers.JSONResponse{
+		Error:   false,
+		Message: "logged via grpc",
+	}
+	err = tool.WriteJSON(writer, http.StatusAccepted, response)
+	if err != nil {
+		return
+	}
 }
