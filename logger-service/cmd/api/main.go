@@ -9,7 +9,10 @@ import (
 	"net/rpc"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"log-service/data"
+	"log-service/logs"
 
 	"github.com/caarlos0/env/v6"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,6 +56,8 @@ func main() {
 	err = rpc.Register(new(RPCServer))
 	go app.listenRPC()
 
+	go app.listenGRPC()
+
 	log.Printf("Starting log service on port %s\n", app.WebPort)
 	srv := http.Server{
 		Addr:    fmt.Sprintf(":%s", app.WebPort),
@@ -95,5 +100,21 @@ func (app *Config) listenRPC() {
 			continue
 		}
 		go rpc.ServeConn(rpcConn)
+	}
+}
+
+func (app *Config) listenGRPC() {
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", app.GpcPort))
+	if err != nil {
+		log.Fatalf("Failed to listen gRPC: %v", err)
+	}
+
+	server := grpc.NewServer()
+
+	logs.RegisterLogServiceServer(server, &LogServer{Models: app.Models})
+	log.Printf("gRPC server started on port %s", app.GpcPort)
+
+	if err = server.Serve(listen); err != nil {
+		log.Fatalf("Failed to listen gRPC: %v", err)
 	}
 }
