@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -120,10 +121,13 @@ func (m *Mail) getEncryption(encryption string) mail.Encryption {
 	}
 }
 
-func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
-	templateToRender := "./templates/mail.html.gohtml"
+//go:embed templates
+var templateFS embed.FS
 
-	t, err := template.New("email-html").ParseFiles(templateToRender)
+func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
+	templateToRender := "templates/mail.html.gohtml"
+
+	t, err := template.New("email-html").ParseFS(templateFS, templateToRender)
 	if err != nil {
 		return "", err
 	}
@@ -163,9 +167,9 @@ func (m *Mail) inlineCSS(s string) (string, error) {
 }
 
 func (m *Mail) buildTextMessage(msg Message) (string, error) {
-	templateToRender := "./templates/mail.text.gohtml"
+	templateToRender := "templates/mail.text.gohtml"
 
-	t, err := template.New("email-text").ParseFiles(templateToRender)
+	t, err := template.New("email-text").ParseFS(templateFS, templateToRender)
 	if err != nil {
 		return "", err
 	}
