@@ -41,6 +41,18 @@ services:
     volumes:
       - ./db-data/rabbitmq/:/var/lib/rabbitmq/
 
+  frontend:
+    build:
+      context: ./../front-end
+      dockerfile: Dockerfile
+    env_file: ./../front-end/.env
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "8000:8000"
+
   broker-service:
     build:
       context: ./../broker-service
@@ -48,7 +60,7 @@ services:
     env_file: ./../broker-service/.env
     restart: always
     ports:
-      - "8080:80"
+      - "8080:8080"
     deploy:
       mode: replicated
       replicas: 1
