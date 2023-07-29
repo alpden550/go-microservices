@@ -11,21 +11,27 @@ import (
 )
 
 type templateData struct {
+	BrokerURL string
+}
+
+type Config struct {
 	BrokerURL string `env:"BROKER_URL,required"`
+	Port      string `env:"PORT"`
 }
 
 func main() {
-	var td templateData
-	if err := env.Parse(&td); err != nil {
+	app := Config{}
+	if err := env.Parse(&app); err != nil {
 		log.Fatal(err.Error())
 	}
 
+	td := templateData{BrokerURL: app.BrokerURL}
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		render(writer, "test.page.gohtml", &td)
 	})
 
-	log.Println("Starting front end service on port 8000")
-	err := http.ListenAndServe(":8000", nil)
+	log.Printf("Starting front end service on port %s", app.Port)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", app.Port), nil)
 	if err != nil {
 		log.Panic(err)
 	}
