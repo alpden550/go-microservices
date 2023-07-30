@@ -5,9 +5,6 @@ CREATE SEQUENCE public.user_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
-ALTER TABLE public.user_id_seq OWNER TO postgres;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -26,9 +23,6 @@ CREATE TABLE public.users (
                               created_at timestamp without time zone,
                               updated_at timestamp without time zone
 );
-
-
-ALTER TABLE public.users OWNER TO postgres;
 
 --
 -- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
