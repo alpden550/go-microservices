@@ -18,6 +18,8 @@ type Config struct {
 	MailerURL string `env:"MAILER_URL,required"`
 	AmqpURl   string `env:"AMQP_URL,required"`
 	WebPort   string `env:"WEB_PORT,required"`
+	RpcURL    string `env:"RPC_URL,required"`
+	GrpcURL   string `env:"GRPC_URL,required"`
 	Rabbit    *amqp.Connection
 }
 
