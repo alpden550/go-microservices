@@ -238,7 +238,7 @@ func (app *Config) pushToQueue(name, msg string) error {
 func (app *Config) logEventViaRPC(writer http.ResponseWriter, l LogPayload) {
 	tool := helpers.Tool{}
 
-	client, err := rpc.Dial("tcp", "logger-service:5001")
+	client, err := rpc.Dial("tcp", fmt.Sprintf("%s", app.RpcURL))
 	if err != nil {
 		_ = tool.WriteErrorJSON(writer, err)
 		return
@@ -273,7 +273,7 @@ func (app *Config) logEventViaGRPC(writer http.ResponseWriter, request *http.Req
 	}
 
 	conn, err := grpc.Dial(
-		"logger-service:50001",
+		fmt.Sprintf("%s", app.GrpcURL),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
