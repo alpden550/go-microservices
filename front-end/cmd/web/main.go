@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/getsentry/sentry-go"
 )
 
 type templateData struct {
@@ -15,6 +16,7 @@ type templateData struct {
 }
 
 type Config struct {
+	SentryDSN string `env:"SENTRY_DSN,required"`
 	BrokerURL string `env:"BROKER_URL,required"`
 	Port      string `env:"PORT"`
 }
@@ -25,13 +27,21 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:              app.SentryDSN,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+
 	td := templateData{BrokerURL: app.BrokerURL}
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		render(writer, "test.page.gohtml", &td)
 	})
 
 	log.Printf("Starting front end service on port %s", app.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", app.Port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", app.Port), nil)
 	if err != nil {
 		log.Panic(err)
 	}
