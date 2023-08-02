@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logger-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logger-service
+  template:
+    metadata:
+      labels:
+        app: logger-service
+    spec:
+      containers:
+        - name: logger-service
+          image: "alpden/logger-service:latest"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: "logs"
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "admin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "password"
+            - name: WEB_PORT
+              value: "80"
+            - name: RPC_PORT
+              value: "5001"
+            - name: GRPC_PORT
+              value: "50001"
+            - name: MONGO_URL
+              value: "mongodb://mongo:27017"
+          ports:
+            - containerPort: 80
+            - containerPort: 5001
+            - containerPort: 50001
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: logger-service
+spec:
+  selector:
+    app: logger-service
+  ports:
+    - protocol: TCP
+      name: main-port
+      port: 80
+      targetPort: 80
+    - protocol: TCP
+      name: rpc-port
+      port: 5001
+      targetPort: 5001
+    - protocol: TCP
+      name: grpc-port
+      port: 50001
+      targetPort: 50001
