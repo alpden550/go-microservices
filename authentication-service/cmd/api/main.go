@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/getsentry/sentry-go"
 
 	"authentication/data"
 	"database/sql"
@@ -15,33 +17,45 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-const port = "80"
-
 var counts int64
 
 type Config struct {
-	DB     *sql.DB
-	Models data.Models
+	DB          *sql.DB
+	Models      data.Models
+	Port        string `env:"WEB_PORT"`
+	PostgresDSN string `env:"POSTGRES_DSN"`
+	SentryDSN   string `env:"SENTRY_DSN"`
 }
 
 func main() {
-	log.Println("Starting service at port ", port)
+	app := Config{}
+	if err := env.Parse(&app); err != nil {
+		log.Fatal(err.Error())
+	}
 
-	conn := connectToDB()
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:              app.SentryDSN,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+
+	conn := connectToDB(app.PostgresDSN)
 	if conn == nil {
 		log.Panic("Can't connect to postgres")
 	}
 
-	app := Config{
-		DB:     conn,
-		Models: data.New(conn),
-	}
+	app.DB = conn
+	app.Models = data.New(conn)
+	log.Println("Starting service at port ", app.Port)
+
 	srv := http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%s", app.Port),
 		Handler: app.routes(),
 	}
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Panic(err)
 	}
@@ -60,9 +74,7 @@ func openDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func connectToDB() *sql.DB {
-	dsn := os.Getenv("DSN")
-
+func connectToDB(dsn string) *sql.DB {
 	for {
 		conn, err := openDB(dsn)
 		if err != nil {
