@@ -75,8 +75,7 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-    environment:
-      DSN: "host=postgres port=5432 user=postgres password=password dbname=postgres sslmode=disable timezone=UTC connect_timeout=5"
+    env_file: ./../authentication-service/.env
 
   logger-service:
     build:
