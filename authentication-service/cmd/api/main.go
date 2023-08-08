@@ -20,8 +20,7 @@ import (
 var counts int64
 
 type Config struct {
-	DB          *sql.DB
-	Models      data.Models
+	Repo        data.UserRepository
 	Port        string `env:"WEB_PORT"`
 	PostgresDSN string `env:"POSTGRES_DSN"`
 	SentryDSN   string `env:"SENTRY_DSN"`
@@ -45,9 +44,8 @@ func main() {
 	if conn == nil {
 		log.Panic("Can't connect to postgres")
 	}
+	app.setupRepo(conn)
 
-	app.DB = conn
-	app.Models = data.New(conn)
 	log.Println("Starting service at port ", app.Port)
 
 	srv := http.Server{
@@ -94,4 +92,9 @@ func connectToDB(dsn string) *sql.DB {
 		time.Sleep(2 * time.Second)
 		continue
 	}
+}
+
+func (app *Config) setupRepo(conn *sql.DB) {
+	db := data.NewPostgresRepository(conn)
+	app.Repo = db
 }
