@@ -25,7 +25,15 @@ localhost:80 {
 	encode zstd gzip
 	import static
 
-	reverse_proxy  http://front-end:8000
+    reverse_proxy http://front-end:8000 {
+    	@error status 404
+    	handle_response @error {
+    		root    * /srv
+    		rewrite * /404.html
+    		file_server
+    	}
+    }
+
 }
 
 backend:80 {
