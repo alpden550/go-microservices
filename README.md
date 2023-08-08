@@ -22,7 +22,7 @@ Or via docker-compose
 
 Example running in docker swarm: https://swarm.golang.rest/, it uses caddy as proxy server.
 
-To use own docker swarm, build all services for the exact platform amd update example swarm.yml with own images, and deploy:
+To use own docker swarm, build all services for the exact platform, and update example swarm.yml with own images, and deploy:
 
 `docker swarm deploy -с swarm.yaml app`
 
