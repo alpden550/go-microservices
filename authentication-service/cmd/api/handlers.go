@@ -23,13 +23,13 @@ func (app *Config) Authenticate(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	user, err := app.Models.User.GetByEmail(requestPayload.Email)
+	user, err := app.Repo.GetByEmail(requestPayload.Email)
 	if err != nil {
 		_ = tool.WriteErrorJSON(writer, errors.New("not found user"))
 		return
 	}
 
-	valid, err := user.PasswordMatches(requestPayload.Password)
+	valid, err := app.Repo.PasswordMatches(requestPayload.Password, *user)
 	if err != nil || !valid {
 		_ = tool.WriteErrorJSON(writer, errors.New("invalid password credentials"))
 		return
