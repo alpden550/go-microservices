@@ -24,10 +24,13 @@ type Config struct {
 	Port        string `env:"WEB_PORT"`
 	PostgresDSN string `env:"POSTGRES_DSN"`
 	SentryDSN   string `env:"SENTRY_DSN"`
+	Client      *http.Client
 }
 
 func main() {
-	app := Config{}
+	app := Config{
+		Client: &http.Client{},
+	}
 	if err := env.Parse(&app); err != nil {
 		log.Fatal(err.Error())
 	}
